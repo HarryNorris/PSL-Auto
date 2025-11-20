@@ -4,26 +4,23 @@ import { getVaultDocuments } from "./db";
 
 // Robust API Key Retrieval
 const getApiKey = (): string | undefined => {
-  // 1. Try Vite / Vercel / Netlify (Standard for React Apps)
+  // 1. Primary: Vite / Vercel / Netlify (Standard for React Apps)
+  // This prevents "process is not defined" crashes in production builds
   try {
-    // @ts-ignore - import.meta meta-property is not standard in all TS configs
-    if (import.meta && import.meta.env) {
-      // Prioritize the Vercel specific key
+    // @ts-ignore - Vite specific
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
       // @ts-ignore
       if (import.meta.env.VITE_GEMINI_API_KEY) {
         // @ts-ignore
         return import.meta.env.VITE_GEMINI_API_KEY;
       }
-      // Fallback to generic VITE_API_KEY
-      // @ts-ignore
-      if (import.meta.env.VITE_API_KEY) {
-        // @ts-ignore
-        return import.meta.env.VITE_API_KEY;
-      }
     }
-  } catch (e) { /* Ignore */ }
+  } catch (e) { 
+    console.warn("Environment access error:", e); 
+  }
 
-  // 2. Try Bolt.new / Node Environment
+  // 2. Fallback: Bolt.new / Node Environment
+  // We strictly check typeof process to avoid ReferenceErrors in browser
   try {
     if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
       return process.env.API_KEY;
@@ -38,9 +35,10 @@ const API_KEY = getApiKey();
 export const analyzeTenderWithGemini = async (
   tenderText: string
 ): Promise<TenderQA[]> => {
+  
   if (!API_KEY) {
-    console.error("API Config Error: Key is missing.");
-    throw new Error("API Key is missing. Ensure VITE_GEMINI_API_KEY is set in your Vercel Environment Variables.");
+    console.error("CRITICAL ERROR: API Key is missing.");
+    throw new Error("API Key is missing. Please ensure VITE_GEMINI_API_KEY is set in your Vercel/Netlify Environment Variables.");
   }
 
   // 1. Fetch Context from Database
