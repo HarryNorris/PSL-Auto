@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Clock, Archive, Filter, Trash2, Download, Eye, Search, AlertTriangle } from 'lucide-react';
+import { FileText, Clock, Archive, Trash2, Download, Eye, Search, AlertTriangle } from 'lucide-react';
 import { StatCard } from './StatCard';
 import { StatusBadge } from './StatusBadge';
 import { Document, ViewState } from '../types';
@@ -69,10 +69,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
           <p className="text-slate-500 mt-1">Overview of your tender automation activity.</p>
         </div>
         <div className="flex items-center gap-3">
-            <button className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
-                <Filter size={16} />
-                Filter
-            </button>
             <button 
                 onClick={handleNewReport}
                 className="bg-brand-900 hover:bg-brand-800 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md transition-all flex items-center gap-2"

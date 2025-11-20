@@ -77,10 +77,9 @@ export const NewTenderView: React.FC = () => {
                     {getFileIcon()}
                   </div>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mt-8">Analyzing Tender Document</h3>
+              <h3 className="text-xl font-bold text-slate-900 mt-8">Analysing Tender Document</h3>
               <p className="text-slate-500 mt-2 text-center max-w-md">
-                  Extracting text & matching policies... <br/>
-                  <span className="text-xs text-slate-400">Powered by Gemini 3 Pro</span>
+                  Extracting text & matching policies...
               </p>
           </div>
       );

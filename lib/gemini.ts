@@ -2,12 +2,46 @@ import { GoogleGenAI } from "@google/genai";
 import { TenderQA } from "../types";
 import { getVaultDocuments } from "./db";
 
-const API_KEY = process.env.API_KEY;
+// Robust API Key Retrieval
+const getApiKey = (): string | undefined => {
+  // 1. Try Vite / Vercel / Netlify (Standard for React Apps)
+  try {
+    // @ts-ignore - import.meta meta-property is not standard in all TS configs
+    if (import.meta && import.meta.env) {
+      // Prioritize the Vercel specific key
+      // @ts-ignore
+      if (import.meta.env.VITE_GEMINI_API_KEY) {
+        // @ts-ignore
+        return import.meta.env.VITE_GEMINI_API_KEY;
+      }
+      // Fallback to generic VITE_API_KEY
+      // @ts-ignore
+      if (import.meta.env.VITE_API_KEY) {
+        // @ts-ignore
+        return import.meta.env.VITE_API_KEY;
+      }
+    }
+  } catch (e) { /* Ignore */ }
+
+  // 2. Try Bolt.new / Node Environment
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      return process.env.API_KEY;
+    }
+  } catch (e) { /* Ignore */ }
+
+  return undefined;
+};
+
+const API_KEY = getApiKey();
 
 export const analyzeTenderWithGemini = async (
   tenderText: string
 ): Promise<TenderQA[]> => {
-  if (!API_KEY) throw new Error("API_KEY is missing.");
+  if (!API_KEY) {
+    console.error("API Config Error: Key is missing.");
+    throw new Error("API Key is missing. Ensure VITE_GEMINI_API_KEY is set in your Vercel Environment Variables.");
+  }
 
   // 1. Fetch Context from Database
   const docs = await getVaultDocuments();
@@ -29,6 +63,7 @@ export const analyzeTenderWithGemini = async (
   // Truncate tender text if extremely large to avoid context window limits
   const safeTenderText = tenderText.length > 400000 ? tenderText.substring(0, 400000) + "...[TRUNCATED]" : tenderText;
 
+  // Updated System Instruction for British English (UK)
   const systemInstruction = `You are a Bid Writing Engine. Your job is to extract questions from the Tender Text and answer them using the provided Context.
 
 Rules:
@@ -38,6 +73,7 @@ Rules:
 4. Structure: [{ "question": "...", "answer": "..." }]
 5. If a specific answer isn't found in the context, state 'Requires bespoke input' but try to infer from policies first.
 6. You MUST cite which document you used for the answer in brackets at the end, e.g., [Source: GDPR_Policy.pdf].
+7. LANGUAGE: You must use BRITISH ENGLISH spelling (e.g., 'optimise', 'colour', 'programme', 'organisation').
 `;
 
   const prompt = `
